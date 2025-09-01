@@ -4,24 +4,21 @@
 #include <stdlib.h>
 #include <omp.h>
 
-unsigned int my_rand_r(unsigned int *seedp) {
-    // Parâmetros clássicos de um Gerador Linear Congruencial (LCG)
-    *seedp = *seedp * 1103515245 + 12345;
-    return (unsigned int)(*seedp / 65536) % (RAND_MAX + 1);
-}
-
 // Definição global do número de passos para consistência
 const long NUM_PASSOS = 100000000;
 long pontos_no_circulo = 0;//variavel conpartilhada pelas thread
+unsigned int seed = 12345;
 
 //versão Paralela
 void pi_paralel_for() {
-        #pragma omp parallel for
-        for (long i = 0; i < NUM_PASSOS; i++){ 
-            unsigned int seed = omp_get_thread_num(); //semente unica por thread 
 
-            double x = (double)my_rand_r(&seed) / RAND_MAX * 2.0 - 1.0;
-            double y = (double)my_rand_r(&seed) / RAND_MAX * 2.0 - 1.0;
+        #pragma omp parallel for
+
+        for (long i = 0; i < NUM_PASSOS; i++){ 
+            unsigned int seed_T = seed ^ omp_get_thread_num(); //semente unica por thread 
+
+            double x = (double)rand_r(&seed_T) / RAND_MAX * 2.0 - 1.0;
+            double y = (double)rand_r(&seed_T) / RAND_MAX * 2.0 - 1.0;
             if (x * x + y * y < 1.0) {
                 pontos_no_circulo++;//aqui esta a condição de corrida
             }
